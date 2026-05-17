@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>famQuest | Family Adventure Game</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="travel-decor decor-route" aria-hidden="true">
+      <span></span><i></i><i></i><i></i>
+    </div>
+    <div class="travel-decor decor-passport" aria-hidden="true">PASS</div>
+    <div class="travel-decor decor-stamp" aria-hidden="true">TRAVEL</div>
+    <div class="travel-decor decor-map" aria-hidden="true"></div>
+    <div class="travel-decor decor-photos" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="travel-decor decor-flowers" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="floating-actions" aria-label="Quick actions">
+      <button id="stickerButton" class="sticker-fab" type="button" aria-label="Open sticker collection">
+        <span class="knit-icon" aria-hidden="true"></span>
+      </button>
+      <button id="leaderboardButton" class="leaderboard-fab" type="button" aria-label="Open leaderboard">🏆</button>
+    </div>
+    <main class="app-shell" id="appShell" data-locked="true">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark fam-logo" aria-hidden="true">
+            <span class="person adult-one"></span>
+            <span class="person child-one"></span>
+            <span class="person child-two"></span>
+            <span class="person adult-two"></span>
+          </div>
+          <div>
+            <p class="eyebrow">Family adventure</p>
+            <h1>famQuest</h1>
+          </div>
+        </div>
+
+        <section class="profile-panel" aria-live="polite">
+          <img id="profileAvatar" class="avatar" src="" alt="Profile avatar" />
+          <div>
+            <p id="profileName" class="profile-name">Login required</p>
+            <p id="profileMeta" class="muted">Session closes when this tab closes</p>
+          </div>
+        </section>
+
+        <section class="family-card visible-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Direct view</p>
+              <h2>Family members</h2>
+            </div>
+            <span id="memberCount">0 members</span>
+          </div>
+          <div id="memberList" class="member-list"></div>
+          <section class="request-section">
+            <div class="section-heading compact-heading">
+              <h3>Family friends</h3>
+              <span id="friendFamilyCount">0</span>
+            </div>
+            <div class="inline-form">
+              <input id="familyFriendSearch" type="search" placeholder="Search family name" autocomplete="off" />
+              <button id="sendFamilyFriendRequestButton" type="button">Request</button>
+            </div>
+            <div class="request-section">
+              <div class="section-heading compact-heading">
+                <h3>Friend requests for you</h3>
+                <span id="incomingFriendRequestCount">0</span>
+              </div>
+              <div id="incomingFriendRequestList" class="request-list"></div>
+            </div>
+            <div class="request-section">
+              <div class="section-heading compact-heading">
+                <h3>Pending friend requests</h3>
+                <span id="pendingFriendRequestCount">0</span>
+              </div>
+              <div id="pendingFriendRequestList" class="request-list"></div>
+            </div>
+            <div class="request-section">
+              <div class="section-heading compact-heading">
+                <h3>Friend families</h3>
+                <span id="closedFriendRequestCount">0</span>
+              </div>
+              <div id="closedFriendRequestList" class="request-list"></div>
+            </div>
+          </section>
+          <button id="manageFamilyButton" class="primary-button full-button" type="button">
+            Manage family
+          </button>
+        </section>
+
+        <button id="logoutButton" class="ghost-button" type="button">Log out</button>
+      </aside>
+
+      <section class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Connection dashboard</p>
+            <h2 id="dashboardTitle">Login to continue.</h2>
+          </div>
+          <button id="openAccountButton" class="primary-button" type="button">Login / Create account</button>
+        </header>
+
+        <section id="calendar" class="calendar-section visible-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Direct view</p>
+              <h2 id="monthLabel"></h2>
+            </div>
+            <div class="calendar-controls">
+              <button id="prevMonth" type="button" aria-label="Previous month">‹</button>
+              <button id="todayButton" type="button">Today</button>
+              <button id="nextMonth" type="button" aria-label="Next month">›</button>
+            </div>
+          </div>
+          <div class="calendar-grid weekdays" aria-hidden="true">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+          <div id="calendarGrid" class="calendar-grid"></div>
+        </section>
+
+        <section class="gallery-section visible-panel">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Quest gallery</p>
+              <h2>Shared photo reel</h2>
+            </div>
+            <div class="gallery-heading-actions">
+              <span id="questGalleryCount">0 photos</span>
+              <button id="openGalleryCameraButton" class="icon-button camera-icon-button" type="button" aria-label="Add photo to gallery" title="Add photo to gallery">📷</button>
+            </div>
+          </div>
+          <div id="questGalleryList" class="gallery-list"></div>
+        </section>
+
+        <section class="feature-dock" aria-label="Family tools">
+          <details class="feature-box">
+            <summary>
+              <span>
+                <span class="eyebrow">Rewards</span>
+              <strong>Points and badges</strong>
+              </span>
+              <strong id="pointsTotal" class="points-pill">0 pts</strong>
+            </summary>
+            <div class="feature-content">
+              <div class="progress-track"><div id="levelProgress" class="progress-fill"></div></div>
+              <p id="levelText" class="muted">Earn points to unlock the first badge.</p>
+              <div id="badgeList" class="badge-list"></div>
+            </div>
+          </details>
+
+          <details class="feature-box">
+            <summary>
+              <span>
+                <span class="eyebrow">Weekly note</span>
+                <strong>Send one meaningful note</strong>
+              </span>
+              <span id="noteCountdown" class="countdown">Ready</span>
+            </summary>
+            <form id="noteForm" class="stacked-form feature-content">
+              <select id="noteRecipient"></select>
+              <textarea id="noteMessage" rows="4" placeholder="Write something kind, useful, or memorable."></textarea>
+              <button type="submit">Send note +2</button>
+            </form>
+          </details>
+
+          <details class="feature-box">
+            <summary>
+              <span>
+                <span class="eyebrow">Daily quote</span>
+                <strong>Quote interaction</strong>
+              </span>
+            </summary>
+            <div id="quoteNotice" class="quote-banner feature-content">
+              <p id="dailyQuote">Families become stronger through small, steady moments.</p>
+              <div class="quote-actions">
+                <button id="heartQuoteButton" type="button"><span class="heart-symbol" aria-hidden="true"></span> Heart +1</button>
+              </div>
+              <p id="quoteLikeCount" class="muted quote-like-count">0 likes</p>
+              <form id="quoteCommentForm" class="quote-comment-form wide">
+                <textarea id="quoteCommentInput" rows="3" placeholder="Write a family reflection..."></textarea>
+                <button type="submit">Comment +1</button>
+              </form>
+              <div id="quoteCommentList" class="comment-list"></div>
+            </div>
+          </details>
+
+          <details class="feature-box">
+            <summary>
+              <span>
+                <span class="eyebrow">Family goals</span>
+                <strong>Plan something together</strong>
+              </span>
+              <button id="suggestGoalButton" type="button">Suggest</button>
+            </summary>
+            <div class="feature-content">
+              <form id="goalForm" class="inline-form wide">
+                <input id="goalInput" type="text" placeholder="Add a goal, trip, meal, hike..." />
+                <button type="submit">Add</button>
+              </form>
+              <div id="goalList" class="goal-list"></div>
+            </div>
+          </details>
+
+          <details class="feature-box">
+            <summary>
+              <span>
+                <span class="eyebrow">Family snaps</span>
+                <strong>Temporary photo moments</strong>
+              </span>
+              <span id="streakCount" class="points-pill">0 day streak</span>
+            </summary>
+            <form id="snapForm" class="stacked-form feature-content">
+              <div class="snap-camera-card">
+                <div id="snapPhotoPreview" class="snap-photo-preview">No photo yet</div>
+                <button id="openCameraButton" type="button">Open camera</button>
+              </div>
+              <input id="snapCaption" type="text" placeholder="Caption" />
+              <select id="snapTtl">
+                <option value="1">Visible for 1 hour</option>
+                <option value="6">Visible for 6 hours</option>
+                <option value="24">Visible for 24 hours</option>
+              </select>
+              <button type="submit">Send snap</button>
+              <div id="snapList" class="snap-list"></div>
+            </form>
+          </details>
+        </section>
+      </section>
+    </main>
+
+    <dialog id="accountDialog" class="dialog gate-dialog account-gate">
+      <form id="accountForm" method="dialog" class="account-form" novalidate>
+        <div class="gold-decal decal-one"></div>
+        <div class="gold-decal decal-two"></div>
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Private family circle</p>
+            <h2>Login or create account</h2>
+          </div>
+        </div>
+
+        <div class="mode-tabs" role="tablist" aria-label="Account mode">
+          <button id="loginModeButton" class="mode-tab active" type="button" data-account-mode="login">Login</button>
+          <button id="createModeButton" class="mode-tab" type="button" data-account-mode="create">Create</button>
+        </div>
+
+        <p id="accountMessage" class="form-message" aria-live="polite"></p>
+
+        <label>Username<input id="username" name="username" type="text" required placeholder="unique_username" autocomplete="username" /></label>
+        <div id="createFields" class="create-fields" hidden>
+          <label>Email<input id="email" name="email" type="email" required placeholder="you@example.com" autocomplete="email" /></label>
+          <label>Age<input id="age" name="age" type="number" min="1" max="120" required placeholder="Age" /></label>
+        </div>
+        <label>Password<input id="password" name="password" type="password" required minlength="8" maxlength="32" autocomplete="current-password" /></label>
+        <p id="passwordMessage" class="field-message" aria-live="polite"></p>
+        <div id="createPasswordFields" class="create-fields" hidden>
+          <label>Confirm password<input id="confirmPassword" name="confirmPassword" type="password" minlength="8" maxlength="32" autocomplete="new-password" /></label>
+          <p id="confirmPasswordMessage" class="field-message" aria-live="polite"></p>
+          <label>Profile picture <span class="optional-text">optional</span><input id="avatarInput" type="file" accept="image/*" /></label>
+        </div>
+        <button id="accountSubmitButton" class="primary-button" type="submit">Login</button>
+      </form>
+    </dialog>
+
+    <dialog id="familyDialog" class="dialog gate-dialog">
+      <form id="familySetupForm" method="dialog" class="account-form">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Family setup</p>
+            <h2>Add at least one family member</h2>
+          </div>
+        </div>
+        <p class="muted">Type a username and send a request to connect your family.</p>
+        <p id="familySetupMessage" class="form-message" aria-live="polite"></p>
+        <div class="inline-form">
+          <input id="familySearch" type="search" placeholder="Add username" autocomplete="off" />
+          <button type="submit">Send request</button>
+        </div>
+        <section class="request-section">
+          <div class="section-heading compact-heading">
+            <h3>Join requests for you</h3>
+            <span id="incomingRequestCount">0</span>
+          </div>
+          <div id="incomingRequestList" class="request-list"></div>
+        </section>
+        <section class="request-section">
+          <div class="section-heading compact-heading">
+            <h3>Pending requests</h3>
+            <span id="pendingRequestCount">0</span>
+          </div>
+          <div id="pendingRequestList" class="request-list"></div>
+        </section>
+        <section class="request-section">
+          <div class="section-heading compact-heading">
+            <h3>Declined or expired</h3>
+            <span id="closedRequestCount">0</span>
+          </div>
+          <div id="closedRequestList" class="request-list"></div>
+        </section>
+        <div id="setupMemberList" class="member-list"></div>
+        <button id="finishFamilySetupButton" class="primary-button" type="button">Continue to app</button>
+      </form>
+    </dialog>
+
+    <dialog id="familyNameDialog" class="dialog gate-dialog">
+      <form id="familyNameForm" method="dialog" class="account-form">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Family created</p>
+            <h2>Name your family</h2>
+          </div>
+        </div>
+        <p class="muted">Choose one family name for everyone in this group.</p>
+        <p id="familyNameMessage" class="form-message" aria-live="polite"></p>
+        <label>Family name<input id="familyNameRequiredInput" type="text" placeholder="Mathew Explorers" /></label>
+        <button class="primary-button" type="submit">Save family name</button>
+      </form>
+    </dialog>
+
+    <dialog id="eventDialog" class="dialog">
+      <form id="eventForm" method="dialog" class="account-form">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Calendar event</p>
+            <h2 id="eventDateLabel"></h2>
+          </div>
+          <button id="closeEventButton" type="button" aria-label="Close">×</button>
+        </div>
+        <label>Event title<input id="eventTitle" type="text" required placeholder="Dinner, game night, doctor visit..." /></label>
+        <label>Time<input id="eventTime" type="time" required /></label>
+        <label>Member<select id="eventMember"></select></label>
+        <button class="primary-button" type="submit">Add event</button>
+      </form>
+    </dialog>
+
+    <dialog id="eventPreviewDialog" class="dialog event-preview-dialog">
+      <div class="event-preview-panel">
+        <div class="section-heading">
+          <div>
+            <p id="eventPreviewEyebrow" class="eyebrow">Calendar event</p>
+            <h2 id="eventPreviewTitle">Event</h2>
+          </div>
+          <button id="closeEventPreviewButton" type="button" aria-label="Close">×</button>
+        </div>
+        <div id="eventPreviewGraphic" class="event-graphic sparkle" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <p id="eventPreviewMeta" class="muted"></p>
+      </div>
+    </dialog>
+
+    <dialog id="notePopupDialog" class="dialog note-popup-dialog">
+      <div class="note-popup-panel">
+        <button id="closeNotePopupXButton" class="note-popup-close" type="button" aria-label="Close note">×</button>
+        <div class="note-paper-icon" aria-hidden="true"><span></span></div>
+        <p class="eyebrow">A note arrived</p>
+        <h2 id="notePopupTitle">Family note</h2>
+        <p id="notePopupMessage" class="note-popup-message"></p>
+        <p id="notePopupMeta" class="muted"></p>
+        <button id="closeNotePopupButton" class="primary-button" type="button">Close note</button>
+      </div>
+    </dialog>
+
+    <dialog id="questAlertDialog" class="dialog note-popup-dialog">
+      <div class="note-popup-panel">
+        <button id="closeQuestAlertButton" class="note-popup-close" type="button" aria-label="Close quest alert">×</button>
+        <div id="questAlertGraphic" class="event-graphic sparkle" aria-hidden="true"><span></span><span></span><span></span></div>
+        <p class="eyebrow">Quest shared</p>
+        <h2 id="questAlertTitle">Family completed a quest</h2>
+        <p id="questAlertMessage" class="note-popup-message"></p>
+        <img id="questAlertImage" class="quest-alert-image" src="" alt="Quest photo" />
+        <button id="closeQuestAlertConfirmButton" class="primary-button" type="button">Close</button>
+      </div>
+    </dialog>
+
+    <dialog id="adventureDialog" class="dialog adventure-dialog">
+      <div class="adventure-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Monthly famQuest</p>
+            <h2 id="adventureTitle">Location adventure</h2>
+          </div>
+          <button id="closeAdventureButton" type="button" aria-label="Close">×</button>
+        </div>
+        <p id="adventureDescription" class="muted"></p>
+        <div id="adventureMap" class="map-frame"></div>
+        <div class="adventure-actions">
+          <label class="phone-free-option">
+            <input id="phoneFreeCheckbox" type="checkbox" />
+            Double points for no phone use during the trip
+          </label>
+          <button id="completeAdventureButton" class="primary-button" type="button">I reached the location</button>
+        </div>
+        <p id="adventureMessage" class="form-message" aria-live="polite"></p>
+      </div>
+    </dialog>
+
+    <dialog id="leaderboardDialog" class="dialog leaderboard-dialog">
+      <div class="leaderboard-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Family rankings</p>
+            <h2>Leaderboard</h2>
+          </div>
+          <button id="closeLeaderboardButton" type="button" aria-label="Close">×</button>
+        </div>
+        <div id="leaderboardList" class="leaderboard-list"></div>
+      </div>
+    </dialog>
+
+    <dialog id="stickerDialog" class="dialog sticker-dialog">
+      <div class="sticker-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">State animals</p>
+            <h2>Sticker collection</h2>
+          </div>
+          <button id="closeStickerButton" type="button" aria-label="Close">×</button>
+        </div>
+        <div id="stickerList" class="sticker-list"></div>
+      </div>
+    </dialog>
+
+    <dialog id="cameraDialog" class="dialog camera-dialog">
+      <div class="camera-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Family snap</p>
+            <h2>Take a photo</h2>
+          </div>
+          <button id="closeCameraButton" type="button" aria-label="Close">×</button>
+        </div>
+        <video id="cameraVideo" class="camera-video" autoplay playsinline></video>
+        <canvas id="cameraCanvas" hidden></canvas>
+        <p id="cameraMessage" class="form-message" aria-live="polite"></p>
+        <button id="capturePhotoButton" class="primary-button" type="button">Capture photo</button>
+      </div>
+    </dialog>
+
+    <dialog id="snapViewerDialog" class="dialog snap-viewer-dialog">
+      <div class="snap-viewer-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Family snap</p>
+            <h2 id="snapViewerTitle">Photo</h2>
+          </div>
+          <button id="closeSnapViewerButton" type="button" aria-label="Close">×</button>
+        </div>
+        <img id="snapViewerImage" class="snap-viewer-image" src="" alt="Family snap" />
+        <p id="snapViewerMeta" class="muted"></p>
+      </div>
+    </dialog>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
